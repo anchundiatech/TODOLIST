@@ -35,7 +35,7 @@ if ($accion === "crear_actividad") {
     }
 
     try {
-        $sql = "INSERT INTO actividades (actividad, descripcion, observacion, estado, fecha_creacion)
+        $sql = "INSERT INTO actividades (actividad, descripcion, observacion, estado, fecha_de_creacion)
                 VALUES (:actividad, :descripcion, :observacion, :estado, NOW())";
         $stmt = $conn->prepare($sql);
         $stmt->bindParam(":actividad", $actividad);
@@ -48,7 +48,11 @@ if ($accion === "crear_actividad") {
         exit();
 
     } catch (Exception $e) {
-        echo json_encode(["success" => false, "message" => "❌ Error al guardar la actividad.", "error" => $e->getMessage()]);
+        echo json_encode([
+            "success" => false,
+    "message" => "❌ Error al guardar la actividad.",
+    "error" => $e->getMessage(),
+    "trace" => $e->getTraceAsString()]);
         exit();
     }
 }
@@ -138,7 +142,58 @@ if ($accion === "eliminar_actividad") {
         exit();
     }
 }
+// Editar Actividad
+if ($accion === "editar_actividad") {
 
+    $id = $_POST["id"] ?? '';
+    $actividad = $_POST["actividad"] ?? '';
+    $descripcion = $_POST["descripcion"] ?? '';
+    $observacion = $_POST["observacion"] ?? '';
+    $estado = $_POST["estado"] ?? '';
+
+    if (empty($id) || empty($actividad) || empty($descripcion)) {
+        echo json_encode([
+            "success" => false,
+            "message" => "Completa los campos requeridos."
+        ]);
+        exit();
+    }
+
+    try {
+
+        $sql = "UPDATE actividades
+                SET actividad = :actividad,
+                    descripcion = :descripcion,
+                    observacion = :observacion,
+                    estado = :estado,
+                    fecha_de_actualizacion = NOW()
+                WHERE id = :id";
+
+        $stmt = $conn->prepare($sql);
+
+        $stmt->bindParam(":id", $id, PDO::PARAM_INT);
+        $stmt->bindParam(":actividad", $actividad);
+        $stmt->bindParam(":descripcion", $descripcion);
+        $stmt->bindParam(":observacion", $observacion);
+        $stmt->bindParam(":estado", $estado);
+
+        $stmt->execute();
+
+        echo json_encode([
+            "success" => true,
+            "message" => "✅ Actividad actualizada correctamente."
+        ]);
+        exit();
+
+    } catch (Exception $e) {
+        echo json_encode([
+            "success" => false,
+            "message" => "❌ Error al actualizar la actividad.",
+            "error" => $e->getMessage()
+        ]);
+        exit();
+    }
+}
 
 // =====================================================================
 // ❌ ACCIÓN NO RECONOCIDA
